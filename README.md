@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🩺 PROJECT-AI-RF: Prediksi Diabetes dengan Random Forest
+# 🩺 Health Guardian: Prediksi Diabetes dengan Random Forest
 
 [![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![Flask](https://img.shields.io/badge/Flask-3.1.1-green.svg)](https://flask.palletsprojects.com/)
