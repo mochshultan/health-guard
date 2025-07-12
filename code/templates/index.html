@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diabetes Early Detection | Health Guardian</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        teal: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            200: '#99f6e4',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            700: '#0f766e',
+                        },
+                        health: {
+                            blue: '#3b82f6',
+                            green: '#10b981',
+                            red: '#ef4444',
+                            orange: '#f97316',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8fafc;
+            padding-top: 4rem;
+        }
+        
+        .hero-gradient {
+            background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 50%, #99f6e4 100%);
+        }
+        
+        .input-highlight:focus {
+            box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.3);
+        }
+        
+        .loading-spinner {
+            display: none;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid #ffffff;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-icon {
+            display: none;
+            color: #ef4444;
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8rem;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Navigation styles */
+        .nav-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            background-color: white;
+            will-change: transform;
+        }
+
+        .nav-header.hidden {
+            transform: translateY(-100%);
+        }
+
+        .nav-header.visible {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav-header bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <i class="fas fa-heartbeat text-teal-600 text-2xl mr-2"></i>
+                        <span class="font-bold text-teal-600 text-xl">Health Guardian</span>
+                    </div>
+                </div>
+                <div class="hidden sm:ml-6 sm:flex sm:items-center space-x-8">
+                    <a href="#" class="text-gray-700 hover:text-teal-600 px-3 py-2 text-sm font-medium">Home</a>
+                    <a href="#about" class="text-gray-700 hover:text-teal-600 px-3 py-2 text-sm font-medium">About</a>
+                    <a href="#contact" class="text-gray-700 hover:text-teal-600 px-3 py-2 text-sm font-medium">Contact</a>
+                </div>
+                <div class="flex items-center">
+                    <a href="#predict-form" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-300">
+                        Get Started
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="hero-gradient">
+        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 lg:py-24">
+            <div class="text-center">
+                <h1 class="text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight lg:text-6xl">
+                    Early Diabetes Detection
+                </h1>
+                <p class="mt-5 max-w-xl mx-auto text-xl text-gray-600">
+                    Take control of your health with our advanced diabetes prediction model.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="bg-white shadow-md rounded-lg overflow-hidden">
+            <div class="md:flex">
+                <!-- Form Section -->
+                <div id="predict-form" class="md:w-1/2 p-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Diabetes Risk Assessment</h2>
+                    <p class="text-gray-600 mb-8">Fill in your health details to get an instant diabetes risk assessment based on clinical data.</p>
+                    
+                    <form id="diabetesForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Gender -->
+                            <div>
+                                <label for="gender" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Gender
+                                    <span class="tooltip">
+                                        <i class="fas fa-info-circle text-gray-400 ml-1"></i>
+                                        <span class="tooltiptext">0 for Female, 1 for Male</span>
+                                    </span>
+                                </label>
+                                <select id="gender" name="Gender" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm border p-2 input-highlight">
+                                    <option value="0">Female</option>
+                                    <option value="1">Male</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Age -->
+                            <div>
+                                <label for="age" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Age (years)
+                                    <span class="tooltip">
+                                        <i class="fas fa-info-circle text-gray-400 ml-1"></i>
+                                        <span class="tooltiptext">Typical range: 18-80 years</span>
+                                    </span>
+                                </label>
+                                <input type="number" id="age" name="AGE" min="1" max="120" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm border p-2 input-highlight">
+                                <div class="error-icon hidden text-red-500 text-sm mt-1">Please enter a valid age</div>
+                            </div>
+                            
+                            <!-- Urea -->
+                            <div>
+                                <label for="urea" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Urea Level (mg/dL)
+                                    <span class="tooltip">
+                                        <i class="fas fa-info-circle text-gray-400 ml-1"></i>
+                                        <span class="tooltiptext">Normal range: 7-20 mg/dL</span>
+                                    </span>
+                                </label>
+                                <input type="number" step="0.1" id="urea" name="Urea" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm border p-2 input-highlight">
+                                <div class="error-icon hidden text-red-500 text-sm mt-1">Please enter a valid value</div>
+                            </div>
+                            
+                            <!-- Creatinine -->
+                            <div>
+                                <label for="creatinine" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Creatinine Level (mg/dL)
+                                    <span class="tooltip">
+                                        <i class="fas fa-info-circle text-gray-400 ml-1"></i>
+                                        <span class="tooltiptext">Normal range: 0.6-1.2 mg/dL</span>
+                                    </span>
+                                </label>
+                                <input type="number" step="0.1" id="creatinine" name="Cr" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm border p-2 input-highlight">
+                                <div class="error-icon hidden text-red-500 text-sm mt-1">Please enter a valid value</div>
+                            </div>
+                            
+                            <!-- HbA1c -->
+                            <div>
+                                <label for="hba1c" class="block text-sm font-medium text-gray-700 mb-1">
+                                    HbA1c (%)
+                                    <span class="tooltip">
+                                        <i class="fas fa-info-circle text-gray-400 ml-1"></i>
+                                        <span class="tooltiptext">Normal range: 4.0-5.6%</span>
+                                    </span>
+                                </label>
+                                <input type="number" step="0.1" id="hba1c" name="HbA1c" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm border p-2 input-highlight">
+                                <div class="error-icon hidden text-red-500 text-sm mt-1">Please enter a valid value</div>
+                            </div>
+                            
+                            <!-- Cholesterol -->
+                            <div>
+                                <label for="cholesterol" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Cholesterol (mg/dL)
+                                    <span class="tooltip">
+                                        <i class="fas fa-info-circle text-gray-400 ml-1"></i>
+                                        <span class="tooltiptext">Normal range: 125-200 mg/dL</span>
+                                    </span>
+                                </label>
+                                <input type="number" id="cholesterol" name="Chol" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm border p-2 input-highlight">
+                                <div class="error-icon hidden text-red-500 text-sm mt-1">Please enter a valid value</div>
+                            </div>
+                            
+                            <!-- Triglycerides -->
+                            <div>
+                                <label for="triglycerides" class="block text-sm font-medium text-gray-700 mb-1">
+                                    Triglycerides (mg/dL)
+                                    <span class="tooltip">
+                                        <i class="fas fa-info-circle text-gray-400 ml-1"></i>
+                                        <span class="tooltiptext">Normal range: <150 mg/dL</span>
+                                    </span>
+                                </label>
+                                <input type="number" id="triglycerides" name="TG" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm border p-2 input-highlight">
+                                <div class="error-icon hidden text-red-500 text-sm mt-1">Please enter a valid value</div>
+                            </div>
+                            
+                            <!-- VLDL -->
+                            <div>
+                                <label for="vldl" class="block text-sm font-medium text-gray-700 mb-1">
+                                    VLDL (mg/dL)
+                                    <span class="tooltip">
+                                        <i class="fas fa-info-circle text-gray-400 ml-1"></i>
+                                        <span class="tooltiptext">Normal range: 5-40 mg/dL</span>
+                                    </span>
+                                </label>
+                                <input type="number" id="vldl" name="VLDL" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm border p-2 input-highlight">
+                                <div class="error-icon hidden text-red-500 text-sm mt-1">Please enter a valid value</div>
+                            </div>
+                            
+                            <!-- LDL -->
+                            <div>
+                                <label for="ldl" class="block text-sm font-medium text-gray-700 mb-1">
+                                    LDL (mg/dL)
+                                    <span class="tooltip">
+                                        <i class="fas fa-info-circle text-gray-400 ml-1"></i>
+                                        <span class="tooltiptext">Normal range: <100 mg/dL</span>
+                                    </span>
+                                </label>
+                                <input type="number" id="ldl" name="LDL" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm border p-2 input-highlight">
+                                <div class="error-icon hidden text-red-500 text-sm mt-1">Please enter a valid value</div>
+                            </div>
+                            
+                            <!-- BMI -->
+                            <div>
+                                <label for="bmi" class="block text-sm font-medium text-gray-700 mb-1">
+                                    BMI (kg/m²)
+                                    <span class="tooltip">
+                                        <i class="fas fa-info-circle text-gray-400 ml-1"></i>
+                                        <span class="tooltiptext">Normal range: 18.5-24.9 kg/m²</span>
+                                    </span>
+                                </label>
+                                <input type="number" step="0.1" id="bmi" name="BMI" value="0" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm border p-2 input-highlight">
+                                <div class="error-icon hidden text-red-500 text-sm mt-1">Please enter a valid BMI</div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center">
+                            <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white font-medium py-2 px-6 rounded-md transition duration-300 flex items-center">
+                                <span id="buttonText">Predict Diabetes Risk</span>
+                                <div id="loadingSpinner" class="loading-spinner ml-2 hidden"></div>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Results Section -->
+                <div class="md:w-1/2 bg-gray-50 p-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Your Results</h2>
+                    <div id="resultsPlaceholder" class="text-center py-16 text-gray-400">
+                        <i class="fas fa-chart-line text-4xl mb-4"></i>
+                        <p>Complete the form to see your diabetes risk prediction</p>
+                    </div>
+                    <div id="resultsContainer" class="hidden">
+                        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Risk Prediction</h3>
+                            <div class="relative pt-1">
+                                <div class="flex mb-2 items-center justify-between">
+                                    <div>
+                                        <span id="riskPercentage" class="text-xl font-bold inline-block text-teal-600">0%</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-xs font-semibold inline-block text-gray-600">HIGH RISK</span>
+                                    </div>
+                                </div>
+                                <div class="overflow-hidden h-4 mb-4 text-xs flex rounded bg-gray-200">
+                                    <div id="riskBar" style="width:0%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-green-400 to-red-500"></div>
+                                </div>
+                            </div>
+                            <div id="riskLabel" class="text-center py-2 px-4 rounded-full text-sm font-bold">No Risk Data</div>
+                        </div>
+                        
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Recommendations</h3>
+                            <div id="recommendationsContainer">
+                                <ul class="list-disc pl-5 space-y-2 text-gray-700" id="recommendationsList">
+                                    <!-- Will be filled by JavaScript -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8">
+                        <h3 class="font-medium text-gray-700 mb-2">What do these results mean?</h3>
+                        <p class="text-gray-600 text-sm">
+                            This prediction is based on a comprehensive dataset of 1000 patients, 
+                            sourced from Kaggle (Diabetes Dataset by Aravind PCoder). 
+                            The data were collected from the Iraqi society, and uses machine learning 
+                            to assess your risk of diabetes. It is not a medical diagnosis but can indicate whether 
+                            you should consult a healthcare professional for further evaluation.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Info Section -->
+        <div class="mt-12 grid md:grid-cols-3 gap-8">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="text-teal-600 mb-4">
+                    <i class="fas fa-info-circle text-3xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">About Diabetes</h3>
+                <p class="text-gray-600">
+                    Diabetes is a chronic condition that affects how your body turns food into energy. 
+                    Early detection can help prevent serious complications.
+                </p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="text-teal-600 mb-4">
+                    <i class="fas fa-flask text-3xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Our Model</h3>
+                <p class="text-gray-600">
+                    We use a machine learning model trained on clinical data to predict diabetes risk 
+                    based on key health indicators.
+                </p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="text-teal-600 mb-4">
+                    <i class="fas fa-shield-alt text-3xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mb-2">Your Privacy</h3>
+                <p class="text-gray-600">
+                    Your health data is processed securely and never stored. This is for educational 
+                    purposes only, not medical advice.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Section -->
+    <div id="about" class="bg-white py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                    About Our AI Model
+                </h2>
+                <p class="mt-4 text-lg text-gray-600">
+                    Understanding how our diabetes prediction system works
+                </p>
+            </div>
+
+            <div class="mt-12">
+                <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">Dataset & Methodology</h3>
+                        <p class="text-gray-600 mb-4">
+                            Our AI model is trained on a comprehensive dataset of 1000 patients, sourced from Kaggle (Diabetes Dataset by Aravind PCoder). The data were collected from the Iraqi society, specifically from:
+                        </p>
+                        <ul class="list-disc pl-5 text-gray-600 mb-4">
+                            <li>Medical City Hospital Laboratory</li>
+                            <li>Specializes Center for Endocrinology and Diabetes-Al-Kindy Teaching Hospital</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">SMOTE-Random Forest Approach</h3>
+                        <p class="text-gray-600 mb-4">
+                            We employ a sophisticated combination of SMOTE (Synthetic Minority Over-sampling Technique) and Random Forest algorithm to ensure accurate predictions:
+                        </p>
+                        <ul class="list-disc pl-5 text-gray-600">
+                            <li>SMOTE helps balance the dataset by generating synthetic samples</li>
+                            <li>Random Forest provides robust classification through ensemble learning</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="mt-8 bg-gray-50 rounded-lg p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Model Performance</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="text-center p-4 bg-white rounded-lg shadow">
+                            <p class="text-sm text-gray-600">Accuracy</p>
+                            <p class="text-2xl font-bold text-teal-600">99.30%</p>
+                        </div>
+                        <div class="text-center p-4 bg-white rounded-lg shadow">
+                            <p class="text-sm text-gray-600">Precision</p>
+                            <p class="text-2xl font-bold text-teal-600">100.00%</p>
+                        </div>
+                        <div class="text-center p-4 bg-white rounded-lg shadow">
+                            <p class="text-sm text-gray-600">Recall</p>
+                            <p class="text-2xl font-bold text-teal-600">99.20%</p>
+                        </div>
+                        <div class="text-center p-4 bg-white rounded-lg shadow">
+                            <p class="text-sm text-gray-600">F1 Score</p>
+                            <p class="text-2xl font-bold text-teal-600">99.60%</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature Importance Section -->
+                <div class="mt-8 bg-gray-50 rounded-lg p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6">Feature Importance Analysis</h3>
+                    <p class="text-gray-600 mb-6">Understanding which factors most significantly influence our diabetes prediction model</p>
+                    
+                    <div class="space-y-4">
+                        <!-- BMI -->
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium text-gray-700">HbA1c</span>
+                                <span class="text-sm font-medium text-gray-700">40.38%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div class="bg-gradient-to-r from-teal-500 to-teal-600 h-4 rounded-full" style="width: 37.03%"></div>
+                            </div>
+                        </div>
+
+                        <!-- HbA1c -->
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium text-gray-700">BMI</span>
+                                <span class="text-sm font-medium text-gray-700">34.24%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div class="bg-gradient-to-r from-teal-500 to-teal-600 h-4 rounded-full" style="width: 33.08%"></div>
+                            </div>
+                        </div>
+
+                        <!-- AGE -->
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium text-gray-700">Age</span>
+                                <span class="text-sm font-medium text-gray-700">9.31%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div class="bg-gradient-to-r from-teal-500 to-teal-600 h-4 rounded-full" style="width: 12.54%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Cholesterol -->
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium text-gray-700">Triglycerides</span>
+                                <span class="text-sm font-medium text-gray-700">5.47%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div class="bg-gradient-to-r from-teal-500 to-teal-600 h-4 rounded-full" style="width: 4.48%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Triglycerides -->
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium text-gray-700">Cholesterol</span>
+                                <span class="text-sm font-medium text-gray-700">4.51%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div class="bg-gradient-to-r from-teal-500 to-teal-600 h-4 rounded-full" style="width: 4.43%"></div>
+                            </div>
+                        </div>
+
+                        <!-- VLDL -->
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium text-gray-700">VLDL</span>
+                                <span class="text-sm font-medium text-gray-700">3.32%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div class="bg-gradient-to-r from-teal-500 to-teal-600 h-4 rounded-full" style="width: 4.01%"></div>
+                            </div>
+                        </div>
+
+                        <!-- LDL -->
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium text-gray-700">LDL</span>
+                                <span class="text-sm font-medium text-gray-700">1.23%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div class="bg-gradient-to-r from-teal-500 to-teal-600 h-4 rounded-full" style="width: 1.68%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Creatinine -->
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium text-gray-700">Creatinine</span>
+                                <span class="text-sm font-medium text-gray-700">0.65%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div class="bg-gradient-to-r from-teal-500 to-teal-600 h-4 rounded-full" style="width: 0.75%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Gender -->
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium text-gray-700">Urea</span>
+                                <span class="text-sm font-medium text-gray-700">0.52%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div class="bg-gradient-to-r from-teal-500 to-teal-600 h-4 rounded-full" style="width: 0.70%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Urea -->
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-sm font-medium text-gray-700">Gender</span>
+                                <span class="text-sm font-medium text-gray-700">0.37%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div class="bg-gradient-to-r from-teal-500 to-teal-600 h-4 rounded-full" style="width: 0.69%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 text-sm text-gray-600">
+                        <p class="italic">Note: Feature importance values indicate the relative contribution of each factor to the model's predictions. Higher values suggest stronger influence on the prediction outcome.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Section -->
+    <div id="contact" class="bg-gray-50 py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                    Our Team
+                </h2>
+                <p class="mt-4 text-lg text-gray-600">
+                    Meet the developers behind Health Guardian
+                </p>
+            </div>
+
+            <div class="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+                <!-- Team Member 1 -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">Moch. Shultan Ali Saifuddin</h3>
+                    <p class="text-gray-600 mb-2">Department of Robotics and Artificial Intelligence Engineering</p>
+                    <p class="text-gray-600 mb-2">Universitas Airlangga</p>
+                    <p class="text-gray-600 mb-2">Surabaya 60115, Indonesia</p>
+                    <a href="mailto:moch.ultan.ali-2023@ftmm.unair.ac.id" class="text-teal-600 hover:text-teal-700">moch.ultan.ali-2023@ftmm.unair.ac.id</a>
+                </div>
+
+                <!-- Team Member 2 -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">Nathanael Indra Raharjo Paseran</h3>
+                    <p class="text-gray-600 mb-2">Department of Robotics and Artificial Intelligence Engineering</p>
+                    <p class="text-gray-600 mb-2">Universitas Airlangga</p>
+                    <p class="text-gray-600 mb-2">Surabaya 60115, Indonesia</p>
+                    <a href="mailto:nathanael.in.raharjo-2023@ftmm.unair.ac.id" class="text-teal-600 hover:text-teal-700">nathanael.in.raharjo-2023@ftmm.unair.ac.id</a>
+                </div>
+
+                <!-- Team Member 3 -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">Ahmad Maula Robby</h3>
+                    <p class="text-gray-600 mb-2">Department of Robotics and Artificial Intelligence Engineering</p>
+                    <p class="text-gray-600 mb-2">Universitas Airlangga</p>
+                    <p class="text-gray-600 mb-2">Surabaya 60115, Indonesia</p>
+                    <a href="mailto:Ahmad.maula.robby-2023@ftmm.unair.ac.id" class="text-teal-600 hover:text-teal-700">Ahmad.maula.robby-2023@ftmm.unair.ac.id</a>
+                </div>
+
+                <!-- Team Member 4 -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">Ahmad Ghifari Ramadhnai</h3>
+                    <p class="text-gray-600 mb-2">Department of Robotics and Artificial Intelligence Engineering</p>
+                    <p class="text-gray-600 mb-2">Universitas Airlangga</p>
+                    <p class="text-gray-600 mb-2">Surabaya 60115, Indonesia</p>
+                    <a href="mailto:ahmad.ghifari.ramadhani-2023@ftmm.unair.ac.id" class="text-teal-600 hover:text-teal-700">ahmad.ghifari.ramadhani-2023@ftmm.unair.ac.id</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-50 mt-12">
+        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+            <div class="md:flex md:items-center md:justify-between">
+                <div class="flex justify-center md:order-2 space-x-6">
+                    <a href="https://facebook.com/mochshultan" class="text-gray-400 hover:text-teal-500">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="https://twitter.com/mochshultan" class="text-gray-400 hover:text-teal-500">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="https://instagram.com/mochshultan" class="text-gray-400 hover:text-teal-500">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="https://linkedin.com/mochshultan" class="text-gray-400 hover:text-teal-500">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                </div>
+                <div class="mt-8 md:mt-0 md:order-1">
+                    <p class="text-center text-base text-gray-400">
+                        &copy; 2023 Health Guardian. All rights reserved.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let lastScrollTop = 0;
+        const header = document.querySelector('.nav-header');
+        let isHeaderVisible = true;
+        let scrollTimeout;
+        let scrollThreshold = 100; // Increased threshold for more deliberate hiding
+
+        function handleScroll() {
+            const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+            
+            // Show header when scrolling up or at the top
+            if (currentScroll <= 0) {
+                header.classList.remove('hidden');
+                header.classList.add('visible');
+                isHeaderVisible = true;
+                return;
+            }
+
+            // Only hide header if scrolled more than threshold
+            if (currentScroll > lastScrollTop && currentScroll > scrollThreshold && isHeaderVisible) {
+                header.classList.add('hidden');
+                header.classList.remove('visible');
+                isHeaderVisible = false;
+            }
+            // Show header when scrolling up
+            else if (currentScroll < lastScrollTop && !isHeaderVisible) {
+                header.classList.remove('hidden');
+                header.classList.add('visible');
+                isHeaderVisible = true;
+            }
+
+            lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+        }
+
+        function handleMouseMove(e) {
+            if (e.clientY <= 50 && !isHeaderVisible) {
+                header.classList.remove('hidden');
+                header.classList.add('visible');
+                isHeaderVisible = true;
+            }
+        }
+
+        // Add event listeners with increased debounce time
+        window.addEventListener('scroll', () => {
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(handleScroll, 100); // Increased debounce time
+        }, { passive: true });
+
+        window.addEventListener('mousemove', handleMouseMove, { passive: true });
+
+        document.getElementById('diabetesForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            document.getElementById('loadingSpinner').classList.remove('hidden');
+            document.getElementById('buttonText').textContent = 'Analyzing...';
+            
+            const formData = {};
+            document.querySelectorAll('input, select').forEach(input => {
+                let value = input.value;
+                if (input.name === 'Cr') {
+                    value = parseFloat(value) * 10;
+                } else if (input.name === 'Chol') {
+                    value = parseFloat(value) / 10;
+                } else if (input.name === 'TG') {
+                    value = parseFloat(value) / 10;
+                } else if (input.name === 'LDL') {
+                    value = parseFloat(value) / 10;
+                }
+                formData[input.name] = value;
+            });
+
+            document.getElementById('resultsPlaceholder').classList.add('hidden');
+            document.getElementById('resultsContainer').classList.remove('hidden');
+            
+            fetch('http://localhost:5000/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                const prediction = data.prediction;
+                let confidence = Math.round(data.confidence * 100);
+                
+                if (prediction === 0) {
+                    confidence = 100 - confidence;
+                }
+
+                document.getElementById('riskPercentage').textContent = `${confidence}%`;
+                document.getElementById('riskBar').style.width = `${confidence}%`;
+                
+                let riskText, riskColor;
+                if (prediction === 1) {
+                    riskText = "POSITIVE RESULT";
+                    riskColor = "bg-red-100 text-red-800";
+                } else {
+                    riskText = "NEGATIVE RESULT";
+                    riskColor = "bg-green-100 text-green-800";
+                }
+                
+                document.getElementById('riskLabel').textContent = riskText;
+                document.getElementById('riskLabel').className = `text-center py-2 px-4 rounded-full text-sm font-bold ${riskColor}`;
+                
+                const recommendationsList = document.getElementById('recommendationsList');
+                recommendationsList.innerHTML = '';
+                
+                if (prediction === 1) {
+                    recommendationsList.innerHTML = `
+                        <li>Schedule an appointment with a doctor immediately</li>
+                        <li>Get a fasting blood glucose test for confirmation</li>
+                        <li>Monitor your blood sugar levels regularly</li>
+                        <li>Implement diet and exercise changes under medical supervision</li>
+                        <li>Follow up with a diabetes specialist</li>
+                    `;
+                } else {
+                    recommendationsList.innerHTML = `
+                        <li>Maintain healthy lifestyle habits</li>
+                        <li>Consider periodic check-ups to monitor your health</li>
+                        <li>Eat balanced meals and stay physically active</li>
+                        <li>Be aware of diabetes symptoms and risk factors</li>
+                    `;
+                }
+
+                console.log('Received data from backend:', data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('resultsPlaceholder').classList.remove('hidden');
+                document.getElementById('resultsContainer').classList.add('hidden');
+                alert(`Error: ${error.message}`);
+            })
+            .finally(() => {
+                document.getElementById('loadingSpinner').classList.add('hidden');
+                document.getElementById('buttonText').textContent = 'Predict Again';
+            });
+        });
+        
+        const inputs = document.querySelectorAll('input[type="number"]');
+        inputs.forEach(input => {
+            input.addEventListener('input', function() {
+                const errorIcon = this.nextElementSibling;
+                if (!this.checkValidity()) {
+                    errorIcon.classList.remove('hidden');
+                } else {
+                    errorIcon.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
